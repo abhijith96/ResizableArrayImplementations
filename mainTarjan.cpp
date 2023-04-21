@@ -9,9 +9,9 @@
 
 int main(){
 
-    TarjanAndZewicksOptimalArray::TarjanAndZewicksOptimalArray<int, 3, 6> tarjanAndZewicksOptimalArray;
+    TarjanAndZewicksOptimalArray::TarjanAndZewicksOptimalArray<int, 4, 16> tarjanAndZewicksOptimalArray;
 
-    const int iterations = std::pow(2,20);
+    const int iterations = std::pow(2,10) + 1;
 
 
     auto start = std::chrono::high_resolution_clock ::now();
@@ -21,43 +21,46 @@ int main(){
 
     auto stop = std::chrono::high_resolution_clock ::now();
 
-    auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
+   // auto duration = duration_cast<std::chrono::microseconds>(stop - start);
 
-    std::cout<<"duration for tarjan push ds in milliseconds "<< duration.count() <<"\n";
+    //std::cout<<"duration for tarjan push ds in microseconds "<< duration.count() <<"\n";
     //tarjanAndZewicksOptimalArray.PushBack(iterations);
 
     start = std::chrono::high_resolution_clock ::now();
 
+    int sum = 0;
+
     for(int i  = 0; i < iterations; ++i){
-        int val = tarjanAndZewicksOptimalArray.Locate(i);
-        if(val != i){
-            std::cout<<"error in ds\n";
+        int val = tarjanAndZewicksOptimalArray.LocateUsingBitOperations(i);
+        if(val  != i){
+            std::cout<<"error in tarjan\n";
         }
     }
 
-    TarjanAndZewicksOptimalArray::TZA_index_t  size = tarjanAndZewicksOptimalArray.Size();
-    std::cout<<"size is : "<<size<<"\n";
+
 
     stop = std::chrono::high_resolution_clock ::now();
 
-    duration = duration_cast<std::chrono::milliseconds>(stop - start);
+    auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
 
-    std::cout<<"duration for tarjan locate ds in milliseconds "<< duration.count() <<"\n";
+    std::cout<<"duration for tarjan locate ds in milli "<< duration.count() <<"\n";
 
-    start = std::chrono::high_resolution_clock ::now();
-
+    std::cout<<"sum is  "<< sum<<"\n";
+//
+//    start = std::chrono::high_resolution_clock ::now();
+//
     for(int i  = 0; i < iterations; ++i){
         tarjanAndZewicksOptimalArray.PopBack();
     }
-
-    stop = std::chrono::high_resolution_clock ::now();
-
-    duration = duration_cast<std::chrono::milliseconds>(stop - start);
-
-    std::cout<<"duration for tarjan pop ds in milliseconds "<< duration.count() <<"\n";
-
-     size = tarjanAndZewicksOptimalArray.Size();
-    std::cout<<"size is : "<<size<<"\n";
+//
+//    stop = std::chrono::high_resolution_clock ::now();
+//
+//    duration = duration_cast<std::chrono::milliseconds>(stop - start);
+//
+//    std::cout<<"duration for tarjan pop ds in milliseconds "<< duration.count() <<"\n";
+//
+//     size = tarjanAndZewicksOptimalArray.Size();
+//    std::cout<<"size is : "<<size<<"\n";
 
 
 };

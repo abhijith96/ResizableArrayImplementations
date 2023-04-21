@@ -2,7 +2,7 @@
 // Created by Abhijith  K A on 24/03/23.
 //
 
-
+#include <random>
 #include "BrodniksOptimalArray/BrodniksOptimalArray.h"
 
 int main(){
@@ -12,100 +12,103 @@ int main(){
 
     BrodniksOptimalArray::BrodniksOptimalArray<int> brodniksOptimalArray;
 
-    std::cout<< sizeof(int)<<" size of int \n";
-
-    uint64_t  iterations = std::pow(2,20);
 
 
+    uint64_t  iterations = std::pow(2,26) + 1;
 
 
 
 
+
+
+
+    int sum = 0;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::uniform_int_distribution<int> rand_dist(0,  static_cast<int>(iterations));
 
     auto start = std::chrono::high_resolution_clock ::now();
 
+
     for(int i = 0; i < iterations;++i){
-        brodniksOptimalArray.PushBack(i);
+         int val = rand_dist(gen);
+        brodniksOptimalArray.PushBack(val);
     }
 
     auto stop = std::chrono::high_resolution_clock ::now();
 
-    auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
+    auto duration_push_back = duration_cast<std::chrono::milliseconds>(stop - start);
 
-    std::cout<<"duration for insertion in brodnik ds in milliseconds "<< duration.count() <<"\n";
-
-
-
-
-    uint64_t lastelem = brodniksOptimalArray.Locate(brodniksOptimalArray.Size() - 1);
-
-
-    std::cout<<"last elem brodnik  "<< lastelem<<"\n";
-
-
-
-
-
+   // std::cout<<"duration for insertion in brodnik ds in microseconds "<< duration.count() <<"\n";
 
     start = std::chrono::high_resolution_clock ::now();
-    for (int i = 0; i < brodniksOptimalArray.Size(); ++i) {
-       int val =  brodniksOptimalArray.Locate(i);
-       if(val != i){
-           std::cout<<"value is : " <<val<<"\n";
-           std::cout<<"error in ds\n";
-       }
+
+
+    for(int i = 0; i < iterations;++i){
+      int val =  brodniksOptimalArray.Locate(i);
+      if(i == val){
+          ++sum;
+      }
     }
+
     stop = std::chrono::high_resolution_clock ::now();
 
-    duration = duration_cast<std::chrono::milliseconds>(stop - start);
+    auto duration_locate = duration_cast<std::chrono::milliseconds>(stop - start);
 
-    std::cout<<"duration for brodnik Locate in milliseconds "<< duration.count() <<"\n";
 
+
+
+
+
+//    uint64_t lastelem = brodniksOptimalArray.Locate(brodniksOptimalArray.Size() - 1);
+//
+//
+//    std::cout<<"last elem brodnik  "<< lastelem<<"\n";
+//
+//
+//
+//
+//
+//
+
+
+
+
+//
+
+//start = std::chrono::high_resolution_clock ::now();
+//
+//    std::sort(brodniksOptimalArray.begin(), brodniksOptimalArray.end());
+//
+//    stop = std::chrono::high_resolution_clock ::now();
+//
+//
+//    auto duration_std_sort = duration_cast<std::chrono::milliseconds>(stop - start);
 
     start = std::chrono::high_resolution_clock ::now();
-    int k = 0;
-    while (k < 10) {
-        brodniksOptimalArray.PopBack();
-        brodniksOptimalArray.PopBack();
-        brodniksOptimalArray.PushBack(30);
-        brodniksOptimalArray.PushBack(31);
 
-        ++k;
-    }
+    std::make_heap(brodniksOptimalArray.begin(), brodniksOptimalArray.end());
+    std::sort_heap(brodniksOptimalArray.begin(), brodniksOptimalArray.end());
 
-
-
-
-    start = std::chrono::high_resolution_clock ::now();
-    for (int i = 0; i < brodniksOptimalArray.Size(); ++i) {
-        int val =  brodniksOptimalArray.Locate(i);
-        if(val != i){
-            std::cout<<"value is : " <<val<<"\n";
-            std::cout<<"error in ds\n";
-        }
-    }
     stop = std::chrono::high_resolution_clock ::now();
 
-    duration = duration_cast<std::chrono::milliseconds>(stop - start);
 
-    std::cout<<"duration for brodnik Locate again in milliseconds "<< duration.count() <<"\n";
+    auto duration_std_heap_sort = duration_cast<std::chrono::milliseconds>(stop - start);
 
-    start = std::chrono::high_resolution_clock ::now();
-    for (int i = 0; i < iterations; ++i) {
-        brodniksOptimalArray.PopBack();
-    }
-    stop = std::chrono::high_resolution_clock ::now();
+    std::cout<<"duration for brodnik ds pushback  milliseconds "<< duration_push_back.count() <<"\n";
+    std::cout<<"duration for brodnik ds  locate milliseconds "<< duration_locate.count() <<"\n";
 
-    duration = duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout<<"brodnik size "<< brodniksOptimalArray.Size() <<"\n";
 
-    std::cout<<"duration for pop  last back "<< duration.count() <<"\n";
+    std::cout<<"brodnik first elem  "<< brodniksOptimalArray[0] <<"\n";
 
+    std::cout<<"brodnik lst elem  "<< brodniksOptimalArray[brodniksOptimalArray.Size() - 1] <<"\n";
 
-    uint64_t size = brodniksOptimalArray.Size();
+    std::cout<<"sum  "<< sum <<"\n";
 
-
-    std::cout<<"size :   "<< size<<"\n";
-
+    std::cout<<"duration for brodnik ds std::heapsort milliseconds "<< duration_std_heap_sort.count() <<"\n";
 
 
 }

@@ -1,4 +1,4 @@
 
 
-add_library(TarjanAndZewicksOptimalArray STATIC TarjanAndZewicksOptimalArray.cpp TarjanAndZewicksOptimalArray.h Constants.h)
-target_include_directories(TarjanAndZewicksOptimalArray INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/TarjanAndZewicksOptimalArray.h)
+add_library(TarjanAndZewicksOptimalArray STATIC ../TarjanAndZewicksOptimalArray/TarjanAndZewicksOptimalArray.cpp ../TarjanAndZewicksOptimalArray/TarjanAndZewicksOptimalArray.h ../TarjanAndZewicksOptimalArray/Constants.h)
+target_include_directories(TarjanAndZewicksOptimalArray INTERFACE ../TarjanAndZewicksOptimalArray/TarjanAndZewicksOptimalArray.h)

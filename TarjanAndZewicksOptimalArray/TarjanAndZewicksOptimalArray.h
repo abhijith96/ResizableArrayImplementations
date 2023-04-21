@@ -24,6 +24,8 @@ namespace TarjanAndZewicksOptimalArray{
         TZA_index_t current_base_block_size_;
         TZA_index_t size_;
         TZA_index_t current_base_block_size_power_r_;
+        TZA_index_t current_base_block_size_log_2_;
+        bool is_current_block_size_multiple_of_two_;
         TZA_index_t current_base_block_size_division_four_power_r_;
         T* empty_block = nullptr;
         bool is_empty_block_present = false;
@@ -128,6 +130,7 @@ namespace TarjanAndZewicksOptimalArray{
             current_base_block_size_ = new_base_block_size;
             current_base_block_size_power_r_ = new_base_block_size_power_r;
             current_base_block_size_division_four_power_r_ = std::pow(new_base_block_size/4, r);
+            current_base_block_size_log_2_ = std::ceil(std::log2(current_base_block_size_));
 
         }
 
@@ -208,12 +211,19 @@ namespace TarjanAndZewicksOptimalArray{
 
         explicit TarjanAndZewicksOptimalArray() : current_base_block_size_(initial_block_size), size_(0){
             current_base_block_size_power_r_ = std::pow(current_base_block_size_, r);
+            if(current_base_block_size_ % 2 == 0){
+                is_current_block_size_multiple_of_two_ = true;
+            }
+            else{
+                is_current_block_size_multiple_of_two_ = false;
+            }
+            current_base_block_size_log_2_ = std::ceil(std::log2(current_base_block_size_));
             current_base_block_size_division_four_power_r_ = std::pow((current_base_block_size_ / 4), r);
             block_type_to_count_map_.resize(r, 0);
             index_blocks_list_.resize(r);
         }
 
-        const T& Locate(TZA_index_t index){
+        const T& Locate(TZA_index_t index) const{
             if(index  >= size_){
                 throw std::invalid_argument("index out of range");
             }
@@ -227,12 +237,36 @@ namespace TarjanAndZewicksOptimalArray{
                     TZA_index_t  relative_index = index - (total_items_so_far);
                     TZA_index_t block_index = relative_index/current_block_size;
                     TZA_index_t element_index = relative_index % current_block_size;
-                    return index_blocks_list_.at(current_block_type).at(block_index)[element_index];
+                    return index_blocks_list_[current_block_type][block_index][element_index];
                 }
                 --current_block_type;
                 current_block_size/= current_base_block_size_;
                 total_items_so_far += items_in_block;
             }
+        }
+
+        T LocateUsingBitOperations(TZA_index_t index) const{
+            TZA_index_t  total_items_so_far = 0;
+            TZA_index_t current_block_size_log_2 = current_base_block_size_log_2_ * r;
+            TZA_index_t current_block_size = current_base_block_size_power_r_ >> current_base_block_size_log_2_;
+            current_block_size_log_2 -= current_base_block_size_log_2_;
+
+            TZA_index_t current_block_type = r - 1;
+            for(auto iter = block_type_to_count_map_.rbegin(); iter != block_type_to_count_map_.rend(); ++iter){
+                TZA_index_t items_with_block_size = *iter;
+                TZA_index_t items_in_block = items_with_block_size * current_block_size;
+                if(index < (total_items_so_far + items_in_block)){
+                    TZA_index_t  relative_index = index - (total_items_so_far);
+                    TZA_index_t block_index = relative_index >> current_block_size_log_2;
+                    TZA_index_t element_index = relative_index & ((1 << current_block_size_log_2) - 1);
+                    return index_blocks_list_[current_block_type][block_index][element_index];
+                }
+                --current_block_type;
+                current_block_size =  current_block_size >> current_base_block_size_log_2_;
+                current_block_size_log_2 -= current_base_block_size_log_2_;
+                total_items_so_far += items_in_block;
+            }
+            return T();
         }
 
         void PushBack(const T& item){

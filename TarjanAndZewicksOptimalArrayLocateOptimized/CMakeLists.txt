@@ -1,0 +1,4 @@
+
+
+
+add_library(TarjanAndZewicksOptimalArrayLocateOptimized STATIC TarjanAndZewicksOptimalArrayLocateOptimized.cpp TarjanAndZewicksOptimalArrayLocateOptimized.h Constants.h)

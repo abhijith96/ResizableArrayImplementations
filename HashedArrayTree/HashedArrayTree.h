@@ -9,7 +9,7 @@
 #include <cmath>
 
 
-using hashed_array_index_t = uint64_t;
+using hashed_array_index_t = std::size_t;
 hashed_array_index_t constexpr default_block_size = 4;
 
 
@@ -184,10 +184,21 @@ public:
         index_block_.reserve(initial_block_size);
     }
 
+    T& operator[](std::size_t index) {
+        return Locate(index);
+    }
+
+    const T& operator[](std::size_t index) const {
+        return Locate(index);
+    }
+
     const T& Locate(hashed_array_index_t index) const {
-        if(index >= size_){
-            throw std::invalid_argument("Array out of bound");
-        }
+        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+        return index_block_[block_index][item_index];
+    }
+
+    T& Locate(hashed_array_index_t index)  {
         hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
         hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
         return index_block_[block_index][item_index];
@@ -251,6 +262,129 @@ public:
         if(is_empty_block_present_){
             DeallocateBlock(empty_block_address, current_block_size_);
         }
+    }
+
+
+public:
+
+    class iterator {
+    public:
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T *;
+        using reference = T &;
+
+        // Default constructor
+        iterator() : container_(nullptr), index_(0) {}
+
+        // Constructor taking a pointer to the container and an index
+        iterator(HashedArrayTree<T, initial_block_size> *container, std::size_t index) : container_(container),
+                                                                                         index_(index) {}
+
+        // Dereference operator
+        reference operator*() const {
+            return (*container_)[index_];
+        }
+
+        // Member access operator
+        pointer operator->() const {
+            return &(*container_)[index_];
+        }
+
+        // Prefix increment operator
+        iterator &operator++() {
+            ++index_;
+            return *this;
+        }
+
+        // Postfix increment operator
+        iterator operator++(int) {
+            iterator tmp = *this;
+            ++index_;
+            return tmp;
+        }
+
+        // Prefix decrement operator
+        iterator &operator--() {
+            --index_;
+            return *this;
+        }
+
+        // Postfix decrement operator
+        iterator operator--(int) {
+            iterator tmp = *this;
+            --index_;
+            return tmp;
+        }
+
+        // Addition operator
+        iterator operator+(difference_type n) const {
+            return iterator(container_, index_ + n);
+        }
+
+        // Subtraction operator
+        iterator operator-(difference_type n) const {
+            return iterator(container_, index_ - n);
+        }
+
+        // Compound assignment addition operator
+        iterator &operator+=(difference_type n) {
+            index_ += n;
+            return *this;
+        }
+
+        // Compound assignment subtraction operator
+        iterator &operator-=(difference_type n) {
+            index_ -= n;
+            return *this;
+        }
+
+        // Difference operator
+        difference_type operator-(const iterator &other) const {
+            return index_ - other.index_;
+        }
+
+        // Equality operator
+        bool operator==(const iterator &other) const {
+            return container_ == other.container_ && index_ == other.index_;
+        }
+
+        // Inequality operator
+        bool operator!=(const iterator &other) const {
+            return !(*this == other);
+        }
+
+        // Less than operator
+        bool operator<(const iterator &other) const {
+            return index_ < other.index_;
+        }
+
+        // Less than or equal to operator
+        bool operator<=(const iterator &other) const {
+            return index_ <= other.index_;
+        }
+
+        // Greater than operator
+        bool operator>(const iterator &other) const {
+            return index_ > other.index_;
+        }
+
+        // Greater than or equal to operator
+        bool operator>=(const iterator &other) const {
+            return index_ >= other.index_;
+        }
+
+    private:
+        HashedArrayTree<T, initial_block_size> *container_;
+        std::size_t index_ = 0;
+    };
+
+    iterator begin(){
+        return iterator(this, 0);
+    }
+    iterator end(){
+       return  iterator(this, size_);
     }
 
 

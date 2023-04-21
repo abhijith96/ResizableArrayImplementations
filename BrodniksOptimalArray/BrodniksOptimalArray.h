@@ -117,10 +117,8 @@ namespace BrodniksOptimalArray{
             super_block_index_to_number_of_data_blocks_preceding_it_map_.push_back(0);
         }
 
-        const T& Locate(brodniks_array_size_t index){
-            if(index >= size_){
-               return T();
-            }
+        T& Locate(brodniks_array_size_t index){
+
             brodniks_array_size_t k_plus_1 = 0;
             k_plus_1 = GetMSB(index + 1);
             brodniks_array_size_t super_block_index = k_plus_1 - 1;
@@ -134,7 +132,33 @@ namespace BrodniksOptimalArray{
             brodniks_array_size_t no_of_data_blocks_in_preceding_super_blocks = super_block_index_to_number_of_data_blocks_preceding_it_map_.at(super_block_index);
             //brodniks_array_size_t  no_of_data_blocks_in_preceding_super_blocks = GetNumberOfDataBlocksBeforeCurrentSuperBlock(super_block_index);
 
-            return index_block_.at(no_of_data_blocks_in_preceding_super_blocks + data_block_index)[elem_index];
+            return index_block_[no_of_data_blocks_in_preceding_super_blocks + data_block_index][elem_index];
+        }
+
+        const T& Locate(brodniks_array_size_t index) const{
+
+            brodniks_array_size_t k_plus_1 = 0;
+            k_plus_1 = GetMSB(index + 1);
+            brodniks_array_size_t super_block_index = k_plus_1 - 1;
+            brodniks_array_size_t one = 1;
+            brodniks_array_size_t elements_bit_count = GetCeilOfNDividedByTwo(super_block_index);
+            brodniks_array_size_t data_block_bit_count = GetFloorOfNDividedByTwo(super_block_index);
+            brodniks_array_size_t r = index + 1;
+            brodniks_array_size_t elem_index = r & ((one << elements_bit_count) - 1);
+            brodniks_array_size_t data_block_index = (r  >> elements_bit_count) & ((one << data_block_bit_count) - 1);
+
+            brodniks_array_size_t no_of_data_blocks_in_preceding_super_blocks = super_block_index_to_number_of_data_blocks_preceding_it_map_.at(super_block_index);
+            //brodniks_array_size_t  no_of_data_blocks_in_preceding_super_blocks = GetNumberOfDataBlocksBeforeCurrentSuperBlock(super_block_index);
+
+            return index_block_[no_of_data_blocks_in_preceding_super_blocks + data_block_index][elem_index];
+        }
+
+        T& operator[](std::size_t index) {
+            return Locate(index);
+        }
+
+        const T& operator[](std::size_t index) const {
+            return Locate(index);
         }
 
         void PushBack(const T& element){
@@ -230,6 +254,128 @@ namespace BrodniksOptimalArray{
                     current_data_block_in_super_block = 0;
                 }
             }
+        }
+
+    public:
+
+        class iterator {
+        public:
+            using iterator_category = std::random_access_iterator_tag;
+            using value_type = T;
+            using difference_type = std::ptrdiff_t;
+            using pointer = T *;
+            using reference = T &;
+
+            // Default constructor
+            iterator() : container_(nullptr), index_(0) {}
+
+            // Constructor taking a pointer to the container and an index
+            iterator(BrodniksOptimalArray<T> *container, std::size_t index) : container_(container),
+                                                                                             index_(index) {}
+
+            // Dereference operator
+            reference operator*() const {
+                return (*container_)[index_];
+            }
+
+            // Member access operator
+            pointer operator->() const {
+                return &(*container_)[index_];
+            }
+
+            // Prefix increment operator
+            iterator &operator++() {
+                ++index_;
+                return *this;
+            }
+
+            // Postfix increment operator
+            iterator operator++(int) {
+                iterator tmp = *this;
+                ++index_;
+                return tmp;
+            }
+
+            // Prefix decrement operator
+            iterator &operator--() {
+                --index_;
+                return *this;
+            }
+
+            // Postfix decrement operator
+            iterator operator--(int) {
+                iterator tmp = *this;
+                --index_;
+                return tmp;
+            }
+
+            // Addition operator
+            iterator operator+(difference_type n) const {
+                return iterator(container_, index_ + n);
+            }
+
+            // Subtraction operator
+            iterator operator-(difference_type n) const {
+                return iterator(container_, index_ - n);
+            }
+
+            // Compound assignment addition operator
+            iterator &operator+=(difference_type n) {
+                index_ += n;
+                return *this;
+            }
+
+            // Compound assignment subtraction operator
+            iterator &operator-=(difference_type n) {
+                index_ -= n;
+                return *this;
+            }
+
+            // Difference operator
+            difference_type operator-(const iterator &other) const {
+                return index_ - other.index_;
+            }
+
+            // Equality operator
+            bool operator==(const iterator &other) const {
+                return container_ == other.container_ && index_ == other.index_;
+            }
+
+            // Inequality operator
+            bool operator!=(const iterator &other) const {
+                return !(*this == other);
+            }
+
+            // Less than operator
+            bool operator<(const iterator &other) const {
+                return index_ < other.index_;
+            }
+
+            // Less than or equal to operator
+            bool operator<=(const iterator &other) const {
+                return index_ <= other.index_;
+            }
+
+            // Greater than operator
+            bool operator>(const iterator &other) const {
+                return index_ > other.index_;
+            }
+
+            // Greater than or equal to operator
+            bool operator>=(const iterator &other) const {
+                return index_ >= other.index_;
+            }
+
+        private:
+            BrodniksOptimalArray<T> *container_;
+            std::size_t index_ = 0;
+        };
+
+        iterator begin(){
+            return iterator(this, 0);
+        }
+        iterator end(){
+            return  iterator(this, size_);
         }
     };
 

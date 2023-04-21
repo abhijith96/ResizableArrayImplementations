@@ -1,0 +1,4 @@
+
+
+
+add_library(TarjanAndZewicksOptimalArrayRGrows STATIC TarjanAndZewicksOptimalArrayRGrows.cpp TarjanAndZewicksOptimalArrayRGrows.h Constants.h)
