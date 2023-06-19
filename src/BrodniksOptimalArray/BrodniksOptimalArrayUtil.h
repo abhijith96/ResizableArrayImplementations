@@ -11,6 +11,12 @@ namespace BrodniksOptimalArray {
 
     using brodniks_array_size_t = uint64_t;
 
+    /**
+     * Assuming least significant bit at right most position
+     * @param super_block_index
+     * @return
+     */
+
     bool IsSuperBlockIndexOdd(brodniks_array_size_t super_block_index);
 
 

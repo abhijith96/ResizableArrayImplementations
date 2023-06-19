@@ -17,7 +17,6 @@ namespace BrodniksOptimalArray{
 
     bool IsSuperBlockIndexOdd(brodniks_array_size_t super_block_index) {
         return (super_block_index & 1);
-        //return super_block_index % 2 == 1;
     }
 
     brodniks_array_size_t GetCeilOfNDividedByTwo(brodniks_array_size_t n) {

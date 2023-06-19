@@ -5,8 +5,11 @@
 #ifndef RESIZABLEARRAYIMPLEMENTATIONS_HASHEDARRAYTREE_H
 #define RESIZABLEARRAYIMPLEMENTATIONS_HASHEDARRAYTREE_H
 
-#include <vector>
+
 #include <cmath>
+#include <iterator>
+#include <vector>
+#include <iostream>
 
 
 using hashed_array_index_t = std::size_t;
@@ -28,7 +31,8 @@ class HashedArrayTree {
     T* empty_block_address;
     hashed_array_index_t n1_;
     hashed_array_index_t n0_;
-    std::vector<T*> index_block_;
+    hashed_array_index_t index_block_index_;
+    T ** index_block_;
 
 private:
 
@@ -44,7 +48,7 @@ private:
     void Grow(){
         hashed_array_index_t  previous_block_size = current_block_size_;
         hashed_array_index_t  previous_block_size_copy = current_block_size_;
-        std::vector<T*> previous_index_block = index_block_;
+        T ** previous_index_block = index_block_;
         hashed_array_index_t old_n1 = n1_;
         hashed_array_index_t old_n0 = n0_;
 
@@ -57,8 +61,8 @@ private:
         ++current_block_size_log_2_;
         max_current_block_size_capacity_ = max_current_block_size_capacity_ << 2;
         min_current_block_size_capacity_ = max_current_block_size_capacity_ >> 4;
-        index_block_ = std::vector<T*>{};
-        index_block_.reserve(current_block_size_);
+        index_block_ = AllocateIndexBlock(current_block_size_);
+        index_block_index_ = 0;
         n1_ = 0;
         n0_ = 0;
 
@@ -68,7 +72,8 @@ private:
         hashed_array_index_t  items_left_to_copy = size_;
         while(items_left_to_copy > 0){
             if(n1_ == 0 || n0_ == current_block_size_){
-                index_block_.push_back(AllocateBlock(current_block_size_));
+                index_block_[index_block_index_] = AllocateBlock(current_block_size_);
+                ++index_block_index_;
                 ++n1_;
                 n0_ = 0;
             }
@@ -76,15 +81,15 @@ private:
                 hashed_array_index_t elements_count = 0;
                 while(elements_count < current_block_size_ && items_left_to_copy > 0){
                     if(active_old_n0 >= previous_block_size_copy){
-                        DeallocateBlock(previous_index_block[active_old_n1], current_block_size_);
+                        DeallocateBlock(previous_index_block[active_old_n1], previous_block_size);
                         ++active_old_n1;
                         active_old_n0 = 0;
                         if(active_old_n1 == previous_block_size_copy - 1){
                             previous_block_size_copy = old_n0;
                         }
                     }
-//                    std::copy(previous_index_block.at(active_old_n1) + active_old_n0, )
-                    index_block_.back()[n0_] = std::move(previous_index_block[active_old_n1][active_old_n0]);
+
+                    index_block_[index_block_index_ - 1][n0_] = std::move(previous_index_block[active_old_n1][active_old_n0]);
                     ++n0_;
                     ++elements_count;
                     ++active_old_n0;
@@ -93,7 +98,8 @@ private:
             }
         }
 
-        DeallocateBlock(previous_index_block.at(active_old_n1), previous_block_size);
+        DeallocateBlock(previous_index_block[active_old_n1], previous_block_size);
+        DeallocateBlock(previous_index_block, previous_block_size);
 
     }
 
@@ -108,7 +114,7 @@ private:
         }
         hashed_array_index_t  previous_block_size = current_block_size_;
         hashed_array_index_t  previous_block_size_copy = current_block_size_;
-        std::vector<T*> previous_index_block = index_block_;
+        T** previous_index_block = index_block_;
         hashed_array_index_t old_n1 = n1_;
         hashed_array_index_t old_n0 = n0_;
 
@@ -119,8 +125,8 @@ private:
         if(min_current_block_size_capacity_ == 0){
             min_current_block_size_capacity_ = 1;
         }
-        index_block_ = std::vector<T*>{};
-        index_block_.reserve(current_block_size_);
+        index_block_ = AllocateIndexBlock(current_block_size_);
+        index_block_index_ = 0;
         n1_ = 0;
         n0_ = 0;
 
@@ -130,7 +136,8 @@ private:
         hashed_array_index_t  items_left_to_copy = size_;
         while(items_left_to_copy > 0){
             if(n1_ == 0 || n0_ == current_block_size_){
-                index_block_.push_back(AllocateBlock(current_block_size_));
+                index_block_[index_block_index_] = AllocateBlock(current_block_size_);
+                ++index_block_index_;
                 ++n1_;
                 n0_ = 0;
             }
@@ -138,15 +145,14 @@ private:
                 hashed_array_index_t elements_count = 0;
                 while(elements_count < current_block_size_ && items_left_to_copy > 0){
                     if(active_old_n0 >= previous_block_size_copy){
-                        DeallocateBlock(previous_index_block.at(active_old_n1), previous_block_size);
+                        DeallocateBlock(previous_index_block[active_old_n1], previous_block_size);
                         ++active_old_n1;
                         active_old_n0 = 0;
                         if(active_old_n1 == previous_block_size_copy - 1){
                             previous_block_size_copy = old_n0;
                         }
                     }
-//                    std::copy(previous_index_block.at(active_old_n1) + active_old_n0, )
-                    index_block_.back()[n0_] = std::move(previous_index_block[active_old_n1][active_old_n0]);
+                    index_block_[index_block_index_ - 1][n0_] = std::move(previous_index_block[active_old_n1][active_old_n0]);
                     ++n0_;
                     ++elements_count;
                     ++active_old_n0;
@@ -155,14 +161,32 @@ private:
             }
         }
         DeallocateBlock(previous_index_block[active_old_n1], previous_block_size);
+        DeallocateBlock(previous_index_block, previous_block_size);
     }
 
-    void DeallocateBlock(T* block_address, hashed_array_index_t block_size){
+    void DeallocateBlock(T* block_address, [[maybe_unused]] hashed_array_index_t block_size){
+        for(hashed_array_index_t index = 0; index < block_size; ++index){
+            block_address[index].~T();
+        }
         delete [] block_address;
 
     }
+
+    void DeallocateBlock(T** block_address, [[maybe_unused]] hashed_array_index_t block_size){
+        delete [] block_address;
+
+    }
+
     T* AllocateBlock(hashed_array_index_t block_size){
         return new T[block_size];
+    }
+
+    T** AllocateIndexBlock(hashed_array_index_t block_size){
+        T** index_block = new T*[block_size];
+        for(hashed_array_index_t index = 0; index < block_size; ++index){
+            index_block[index] = nullptr;
+        }
+        return index_block;
     }
 
 
@@ -181,7 +205,8 @@ public:
         current_block_size_log_2_ = log2(current_block_size_);
         n0_ = 0;
         n1_ = 0;
-        index_block_.reserve(initial_block_size);
+        index_block_ = AllocateIndexBlock(current_block_size_);
+        index_block_index_ = 0;
     }
 
     T& operator[](std::size_t index) {
@@ -204,6 +229,12 @@ public:
         return index_block_[block_index][item_index];
     }
 
+    void Insert(hashed_array_index_t index, T value){
+        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+        index_block_[block_index][item_index] = std::move(value);
+    }
+
     void PushBack(const T& item) {
         if(size_ == max_current_block_size_capacity_){
             Grow();
@@ -211,16 +242,18 @@ public:
         if(n0_ == current_block_size_ || n1_ == 0){
             ++n1_;
             if(is_empty_block_present_){
-                index_block_.push_back(empty_block_address);
+                index_block_[index_block_index_] = empty_block_address;
+                ++index_block_index_;
                 is_empty_block_present_ = false;
             }
             else{
-                index_block_.push_back(AllocateBlock(current_block_size_));
+                index_block_[index_block_index_] = AllocateBlock(current_block_size_);
+                ++index_block_index_;
             }
 
             n0_ = 0;
         }
-        index_block_[n1_ - 1][n0_] = item;
+        (index_block_[n1_ - 1])[n0_] = item;
         ++n0_;
         ++size_;
 
@@ -244,7 +277,7 @@ public:
                 DeallocateBlock(empty_block_address, current_block_size_);
             }
             empty_block_address = index_block_[n1_ - 1];
-            index_block_.pop_back();
+            --index_block_index_;
             is_empty_block_present_ = true;
             --n1_;
         }
@@ -256,12 +289,15 @@ public:
     }
 
     ~HashedArrayTree(){
-        for(T* block : index_block_){
-            DeallocateBlock(block, current_block_size_);
+        for(hashed_array_index_t index = 0; index < index_block_index_;++index){
+            if(index_block_[index]) {
+                DeallocateBlock(index_block_[index], current_block_size_);
+            }
         }
         if(is_empty_block_present_){
             DeallocateBlock(empty_block_address, current_block_size_);
         }
+        DeallocateBlock(index_block_, current_block_size_);
     }
 
 
