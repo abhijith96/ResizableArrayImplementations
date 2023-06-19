@@ -210,29 +210,43 @@ public:
     }
 
     T& operator[](std::size_t index) {
-        return Locate(index);
+        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+        return index_block_[block_index][item_index];
     }
 
     const T& operator[](std::size_t index) const {
-        return Locate(index);
+        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+        return index_block_[block_index][item_index];
     }
 
     const T& Locate(hashed_array_index_t index) const {
-        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
-        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
-        return index_block_[block_index][item_index];
+        if(index < size_) {
+            hashed_array_index_t block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+            hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+            return index_block_[block_index][item_index];
+        }
+        throw std::invalid_argument("Index out Of Bounds");
     }
 
     T& Locate(hashed_array_index_t index)  {
-        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
-        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
-        return index_block_[block_index][item_index];
+        if(index < size_) {
+            hashed_array_index_t block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+            hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+            return index_block_[block_index][item_index];
+        }
+        throw std::invalid_argument("Index out Of Bounds");
     }
 
     void Insert(hashed_array_index_t index, T value){
-        hashed_array_index_t  block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
-        hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
-        index_block_[block_index][item_index] = std::move(value);
+        if(index < size_) {
+            hashed_array_index_t block_index = GetBlockIndex(index, current_block_size_, current_block_size_log_2_);
+            hashed_array_index_t item_index = GetElementIndex(index, current_block_size_, current_block_size_log_2_);
+            index_block_[block_index][item_index] = std::move(value);
+            return;
+        }
+        throw std::invalid_argument("Index out Of Bounds");
     }
 
     void PushBack(const T& item) {
